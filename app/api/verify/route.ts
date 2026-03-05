@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   }
 
   const { data: user, error: userErr } = await query.maybeSingle();
-  if (userErr || !user) {
+  if (userErr || !user || !user.token) {
     return NextResponse.json({ error: "Record not found" }, { status: 404 });
   }
 
@@ -69,6 +69,7 @@ export async function POST(request: Request) {
       name: template.name,
       department: template.department
     },
-    content
+    content,
+    verify_token: user.token
   });
 }

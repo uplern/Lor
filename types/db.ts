@@ -33,4 +33,5 @@ export type VerifyResponse = {
     department: string;
   };
   content: string;
+  verify_token: string;
 };

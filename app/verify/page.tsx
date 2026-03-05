@@ -82,7 +82,7 @@ export default function VerifyPage() {
         </form>
 
         {result ? (
-          <LORPreview initialContent={result.content} />
+          <LORPreview initialContent={result.content} verifyToken={result.verify_token} />
         ) : (
           <section className="card empty-note muted">Get LOR to preview your letter.</section>
         )}

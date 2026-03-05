@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 type Props = {
   initialContent: string;
+  verifyToken: string;
 };
 
 function formatToday(): string {
@@ -43,7 +44,7 @@ function splitBodyAndClosing(content: string): { body: string[]; closing: string
   return { body, closing };
 }
 
-export default function LORPreview({ initialContent }: Props) {
+export default function LORPreview({ initialContent, verifyToken }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,7 +58,7 @@ export default function LORPreview({ initialContent }: Props) {
       const res = await fetch("/api/generate-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: initialContent, fileName: "LOR.pdf" })
+        body: JSON.stringify({ token: verifyToken, fileName: "LOR.pdf" })
       });
 
       if (!res.ok) throw new Error("Failed to generate LOR");

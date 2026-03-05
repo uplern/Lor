@@ -8,7 +8,7 @@ Self-service Letter of Recommendation generator with admin management and PDF ex
 - Template management
 - User record management
 - Public verify page (name+email or token)
-- Live preview + PDF download
+- Live preview + server-generated PDF download
 - Row-level security policies for admin-only writes
 
 ## Tech stack
@@ -37,6 +37,7 @@ cp .env.example .env.local
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
+NEXT_PUBLIC_SITE_URL=https://lor-zyntiq.vercel.app
 ```
 
 4. Run `supabase/schema.sql` in Supabase SQL editor.
@@ -61,16 +62,16 @@ npm run dev
 - `/admin/templates` manage templates
 - `/admin/users` manage user records
 
-## Template variables
+## Security notes
 
-Supported placeholders in template text:
+- PDF endpoint now accepts token only and renders from database server-side.
+- Do not expose `SUPABASE_SERVICE_ROLE_KEY` anywhere client-side.
+- Prefer tokenized verification links (`/verify?token=...`) in production.
 
-- `{{name}}`
-- `{{role}}`
-- `{{tenure}}`
+## Vercel deployment
 
-## Notes
-
-- Admin pages are protected by middleware and `public.admins` check.
-- `/api/verify` and `/api/generate-pdf` run on the server.
-- For stronger security, distribute tokenized links (`/verify?token=...`).
+1. Push this repo to GitHub.
+2. Import project in Vercel.
+3. Add environment variables from `.env.example`.
+4. Set production domain to `lor-zyntiq.vercel.app`.
+5. Deploy.
