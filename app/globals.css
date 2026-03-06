@@ -140,6 +140,39 @@ body {
   gap: 0.7rem;
 }
 
+.hero-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 900px) {
+  .hero-content-wrapper {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .hero-text {
+    flex: 1;
+    max-width: 60%;
+  }
+
+  .hero-illustration {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    padding-left: 2rem;
+  }
+}
+
+.hero-illustration img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+}
+
+
 .grid {
   display: grid;
   gap: 1rem;

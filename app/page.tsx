@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 function ShieldIcon() {
   return (
@@ -52,16 +53,30 @@ export default function Home() {
   return (
     <main className="container page">
       <section className="hero clean-hero">
-        <div className="hero-badge">Official Zyntiq Portal</div>
-        <h1>Get Your Letter of Recommendation</h1>
-        <p>
-          Verify your details and download your organization-approved recommendation letter with a
-          clean and reliable process.
-        </p>
-        <div className="hero-actions">
-          <Link className="btn" href="/verify">
-            Get LOR
-          </Link>
+        <div className="hero-content-wrapper">
+          <div className="hero-text">
+            <div className="hero-badge">Official Zyntiq Portal</div>
+            <h1>Get Your Letter of Recommendation</h1>
+            <p>
+              Verify your details and download your organization-approved recommendation letter with a
+              clean and reliable process.
+            </p>
+            <div className="hero-actions">
+              <Link className="btn" href="/verify">
+                Get LOR
+              </Link>
+            </div>
+          </div>
+          <div className="hero-illustration">
+            <Image
+              src="/gd1.svg"
+              alt="LOR Illustration"
+              width={400}
+              height={300}
+              priority
+              style={{ objectFit: "contain" }}
+            />
+          </div>
         </div>
       </section>
 
