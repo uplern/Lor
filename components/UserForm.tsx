@@ -6,6 +6,14 @@ type TemplateOption = { id: string; name: string };
 
 type Props = {
   templates: TemplateOption[];
+  initialData?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    tenure: string;
+    template_id: string;
+  } | null;
   onSubmit: (payload: {
     name: string;
     email: string;
@@ -13,12 +21,13 @@ type Props = {
     tenure: string;
     template_id: string;
   }) => Promise<void>;
+  onCancel?: () => void;
 };
 
 const ROLE_OPTIONS = ["Talent Acquisition", "Talent Acquisition & Marketing"];
 const TENURE_OPTIONS = ["1 Month", "2 Months"];
 
-export default function UserForm({ templates, onSubmit }: Props) {
+export default function UserForm({ templates, onSubmit, initialData, onCancel }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("Talent Acquisition");
@@ -27,25 +36,39 @@ export default function UserForm({ templates, onSubmit }: Props) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!templateId && templates.length > 0) {
-      setTemplateId(templates[0].id);
+    if (initialData) {
+      setName(initialData.name);
+      setEmail(initialData.email);
+      setRole(initialData.role);
+      setTenure(initialData.tenure);
+      setTemplateId(initialData.template_id);
+    } else {
+      setName("");
+      setEmail("");
+      setRole("Talent Acquisition");
+      setTenure("2 Months");
+      if (templates.length > 0) {
+        setTemplateId(templates[0].id);
+      }
     }
-  }, [templateId, templates]);
+  }, [initialData, templates]);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     await onSubmit({ name, email, role, tenure, template_id: templateId });
     setLoading(false);
-    setName("");
-    setEmail("");
-    setRole("Talent Acquisition");
-    setTenure("2 Months");
+    if (!initialData) {
+      setName("");
+      setEmail("");
+      setRole("Talent Acquisition");
+      setTenure("2 Months");
+    }
   }
 
   return (
     <form className="card form-grid" onSubmit={submit}>
-      <h3 className="panel-title">Add User Record</h3>
+      <h3 className="panel-title">{initialData ? "Edit User Record" : "Add User Record"}</h3>
 
       <div>
         <label htmlFor="user-name">Name</label>
@@ -101,9 +124,16 @@ export default function UserForm({ templates, onSubmit }: Props) {
         </select>
       </div>
 
-      <button className="btn" type="submit" disabled={loading || templates.length === 0 || !templateId}>
-        {loading ? "Saving..." : "Save User"}
-      </button>
+      <div className="admin-links" style={{ marginTop: "1rem" }}>
+        <button className="btn" type="submit" disabled={loading || templates.length === 0 || !templateId}>
+          {loading ? "Saving..." : initialData ? "Update User" : "Save User"}
+        </button>
+        {initialData && onCancel && (
+          <button className="btn secondary" type="button" onClick={onCancel} disabled={loading}>
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   );
 }

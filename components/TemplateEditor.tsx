@@ -1,14 +1,22 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 type Props = {
+  initialData?: {
+    id: string;
+    name: string;
+    department: string;
+    tenure: string | null;
+    template_content: string;
+  } | null;
   onSubmit: (payload: {
     name: string;
     department: string;
     tenure: string;
     template_content: string;
   }) => Promise<void>;
+  onCancel?: () => void;
 };
 
 const DEFAULT_TEMPLATE = `It is a pleasure to write this letter of recommendation for {{Name}}. During the {{Tenure}} {{Role}} internship with us, we found them to be a diligent, responsible, and punctual individual who consistently completed all assigned tasks on time. Their dedication and willingness to learn were truly commendable.
@@ -23,12 +31,26 @@ Founder Zyntiq.`;
 
 const PLACEHOLDER_HINT = "Use placeholders: {{Name}}, {{Role}}, {{Tenure}}, {{Date}}.";
 
-export default function TemplateEditor({ onSubmit }: Props) {
+export default function TemplateEditor({ onSubmit, initialData, onCancel }: Props) {
   const [name, setName] = useState("Zyntiq Standard LOR");
   const [department, setDepartment] = useState("Human Resources");
   const [tenure, setTenure] = useState("1-2 Months");
   const [templateContent, setTemplateContent] = useState(DEFAULT_TEMPLATE);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (initialData) {
+      setName(initialData.name);
+      setDepartment(initialData.department);
+      setTenure(initialData.tenure || "");
+      setTemplateContent(initialData.template_content);
+    } else {
+      setName("Zyntiq Standard LOR");
+      setDepartment("Human Resources");
+      setTenure("1-2 Months");
+      setTemplateContent(DEFAULT_TEMPLATE);
+    }
+  }, [initialData]);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -44,7 +66,7 @@ export default function TemplateEditor({ onSubmit }: Props) {
 
   return (
     <form className="card form-grid" onSubmit={submit}>
-      <h3 className="panel-title">Create Template</h3>
+      <h3 className="panel-title">{initialData ? "Edit Template" : "Create Template"}</h3>
 
       <div>
         <label htmlFor="template-name">Template Name</label>
@@ -77,9 +99,16 @@ export default function TemplateEditor({ onSubmit }: Props) {
         <p className="muted">{PLACEHOLDER_HINT}</p>
       </div>
 
-      <button className="btn" type="submit" disabled={loading}>
-        {loading ? "Saving..." : "Save Template"}
-      </button>
+      <div className="admin-links" style={{ marginTop: "1rem" }}>
+        <button className="btn" type="submit" disabled={loading}>
+          {loading ? "Saving..." : initialData ? "Update Template" : "Save Template"}
+        </button>
+        {initialData && onCancel && (
+          <button className="btn secondary" type="button" onClick={onCancel} disabled={loading}>
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   );
 }

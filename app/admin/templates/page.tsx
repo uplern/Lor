@@ -6,6 +6,7 @@ import type { TemplateRow } from "@/types/db";
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<TemplateRow[]>([]);
+  const [editingTemplate, setEditingTemplate] = useState<TemplateRow | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -24,7 +25,7 @@ export default function TemplatesPage() {
     void loadTemplates();
   }, []);
 
-  async function createTemplate(payload: {
+  async function handleFormSubmit(payload: {
     name: string;
     department: string;
     tenure: string;
@@ -33,25 +34,52 @@ export default function TemplatesPage() {
     setError(null);
     setSuccess(null);
 
-    const res = await fetch("/api/admin/templates", {
-      method: "POST",
+    const url = editingTemplate ? `/api/admin/templates/${editingTemplate.id}` : "/api/admin/templates";
+    const method = editingTemplate ? "PATCH" : "POST";
+
+    const res = await fetch(url, {
+      method: method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({ error: "Unknown error" }));
-      setError(body.error || "Failed to create template");
+      setError(body.error || `Failed to ${editingTemplate ? "update" : "create"} template`);
       return;
     }
 
-    setSuccess("Template created successfully");
+    setSuccess(`Template ${editingTemplate ? "updated" : "created"} successfully`);
+    setEditingTemplate(null);
+    await loadTemplates();
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Are you sure you want to delete this template?")) return;
+
+    setError(null);
+    setSuccess(null);
+
+    const res = await fetch(`/api/admin/templates/${id}`, {
+      method: "DELETE"
+    });
+
+    if (!res.ok) {
+      setError("Failed to delete template");
+      return;
+    }
+
+    setSuccess("Template deleted successfully");
     await loadTemplates();
   }
 
   return (
     <div className="grid two">
-      <TemplateEditor onSubmit={createTemplate} />
+      <TemplateEditor
+        onSubmit={handleFormSubmit}
+        initialData={editingTemplate}
+        onCancel={() => setEditingTemplate(null)}
+      />
 
       <section className="card">
         <h3 className="panel-title">Templates</h3>
@@ -64,7 +92,7 @@ export default function TemplatesPage() {
               <tr>
                 <th>Name</th>
                 <th>Department</th>
-                <th>Tenure</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -72,7 +100,16 @@ export default function TemplatesPage() {
                 <tr key={template.id}>
                   <td>{template.name}</td>
                   <td>{template.department}</td>
-                  <td>{template.tenure || "-"}</td>
+                  <td>
+                    <div className="admin-links">
+                      <button className="btn secondary small" onClick={() => setEditingTemplate(template)}>
+                        Edit
+                      </button>
+                      <button className="btn secondary small" onClick={() => handleDelete(template.id)}>
+                        Delete
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

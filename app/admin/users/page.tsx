@@ -7,6 +7,7 @@ import type { LORUserRow, TemplateRow } from "@/types/db";
 export default function UsersPage() {
   const [users, setUsers] = useState<LORUserRow[]>([]);
   const [templates, setTemplates] = useState<TemplateRow[]>([]);
+  const [editingUser, setEditingUser] = useState<LORUserRow | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -36,7 +37,7 @@ export default function UsersPage() {
     return new Map(templates.map((template) => [template.id, template.name]));
   }, [templates]);
 
-  async function createUser(payload: {
+  async function handleFormSubmit(payload: {
     name: string;
     email: string;
     role: string;
@@ -46,19 +47,42 @@ export default function UsersPage() {
     setError(null);
     setSuccess(null);
 
-    const res = await fetch("/api/admin/users", {
-      method: "POST",
+    const url = editingUser ? `/api/admin/users/${editingUser.id}` : "/api/admin/users";
+    const method = editingUser ? "PATCH" : "POST";
+
+    const res = await fetch(url, {
+      method: method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({ error: "Unknown error" }));
-      setError(body.error || "Failed to create user");
+      setError(body.error || `Failed to ${editingUser ? "update" : "create"} user`);
       return;
     }
 
-    setSuccess("User created successfully");
+    setSuccess(`User ${editingUser ? "updated" : "created"} successfully`);
+    setEditingUser(null);
+    await loadAll();
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Are you sure you want to delete this user record?")) return;
+
+    setError(null);
+    setSuccess(null);
+
+    const res = await fetch(`/api/admin/users/${id}`, {
+      method: "DELETE"
+    });
+
+    if (!res.ok) {
+      setError("Failed to delete user record");
+      return;
+    }
+
+    setSuccess("User record deleted successfully");
     await loadAll();
   }
 
@@ -66,7 +90,9 @@ export default function UsersPage() {
     <div className="grid two">
       <UserForm
         templates={templates.map((template) => ({ id: template.id, name: template.name }))}
-        onSubmit={createUser}
+        initialData={editingUser}
+        onSubmit={handleFormSubmit}
+        onCancel={() => setEditingUser(null)}
       />
 
       <section className="card">
@@ -80,8 +106,8 @@ export default function UsersPage() {
               <tr>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Role</th>
                 <th>Template</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -89,8 +115,17 @@ export default function UsersPage() {
                 <tr key={user.id}>
                   <td>{user.name}</td>
                   <td>{user.email}</td>
-                  <td>{user.role}</td>
                   <td>{templateMap.get(user.template_id) || user.template_id}</td>
+                  <td>
+                    <div className="admin-links">
+                      <button className="btn secondary small" onClick={() => setEditingUser(user)}>
+                        Edit
+                      </button>
+                      <button className="btn secondary small" onClick={() => handleDelete(user.id)}>
+                        Delete
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
