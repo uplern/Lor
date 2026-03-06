@@ -7,6 +7,7 @@ import QRCode from "qrcode";
 type Props = {
   initialContent: string;
   verifyToken: string;
+  userName: string;
 };
 
 function formatToday(): string {
@@ -54,7 +55,7 @@ function buildReferenceId(content: string): string {
   return `ZYNTIQ-LOR-${dateTag}-${hash.toString(16).slice(0, 6).toUpperCase()}`;
 }
 
-export default function LORPreview({ initialContent, verifyToken }: Props) {
+export default function LORPreview({ initialContent, verifyToken, userName }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
@@ -76,11 +77,13 @@ export default function LORPreview({ initialContent, verifyToken }: Props) {
     setError(null);
     setLoading(true);
 
+    const safeFileName = `${userName.trim().replace(/\s+/g, "_")}_LOR.pdf`;
+
     try {
       const res = await fetch("/api/generate-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: verifyToken, fileName: "LOR.pdf" })
+        body: JSON.stringify({ token: verifyToken, fileName: safeFileName })
       });
 
       if (!res.ok) throw new Error("Failed to generate LOR");
@@ -89,7 +92,7 @@ export default function LORPreview({ initialContent, verifyToken }: Props) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "LOR.pdf";
+      a.download = safeFileName;
       a.rel = "noopener";
       a.click();
 

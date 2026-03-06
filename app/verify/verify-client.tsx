@@ -82,7 +82,11 @@ export default function VerifyClientPage() {
         </form>
 
         {result ? (
-          <LORPreview initialContent={result.content} verifyToken={result.verify_token} />
+          <LORPreview
+            initialContent={result.content}
+            verifyToken={result.verify_token}
+            userName={result.user.name}
+          />
         ) : (
           <section className="card empty-note muted">Get LOR to preview your letter.</section>
         )}
