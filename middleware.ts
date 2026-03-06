@@ -38,22 +38,28 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isAdminRoute = pathname.startsWith("/admin");
+  const isApiRoute = pathname.startsWith("/api/admin");
 
-  let isAdmin = false;
-  if (user) {
-    const { data: adminRecord } = await supabase
-      .from("admins")
-      .select("id")
-      .eq("id", user.id)
-      .maybeSingle();
-    isAdmin = !!adminRecord;
+  // API routes are handled by requireAdmin in their own handlers
+  // This avoids double DB checks and potential Edge sync issues
+  if (isApiRoute) {
+    return response;
   }
 
-  if (isAdminRoute && !isAdmin) {
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (isAdminRoute) {
+    let isAdmin = false;
+    if (user) {
+      const { data: adminRecord } = await supabase
+        .from("admins")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+      isAdmin = !!adminRecord;
     }
-    return NextResponse.redirect(new URL(LOGIN_PATH, request.url));
+
+    if (!isAdmin) {
+      return NextResponse.redirect(new URL(LOGIN_PATH, request.url));
+    }
   }
 
   return response;
