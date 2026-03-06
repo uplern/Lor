@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+// Using native fetch (Node 18+)
 
 async function testApi() {
     console.log('Testing PDF generation API...');
