@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <header className="topnav">
             <Link href="/" className="brand-logo-link" aria-label="Go to home">
               <Image
-                src="/assets/logo.png?v=1.1"
+                src="/assets/logo.png"
                 alt="Uplern"
                 className="brand-logo"
                 width={130}

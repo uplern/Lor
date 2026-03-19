@@ -20,6 +20,7 @@ create table if not exists public.lor_users (
   tenure text not null,
   template_id uuid not null references public.templates(id) on delete restrict,
   token text unique,
+  last_downloaded_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

@@ -7,7 +7,8 @@ const __dirname = path.dirname(__filename);
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  outputFileTracingRoot: __dirname
+  outputFileTracingRoot: __dirname,
+  serverExternalPackages: ["@react-pdf/renderer"]
 };
 
 export default nextConfig;
