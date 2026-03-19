@@ -5,7 +5,10 @@ import type { ReactNode } from "react";
 
 export const metadata = {
   title: "Uplern LOR",
-  description: "Self-service letter of recommendation generator"
+  description: "Self-service letter of recommendation generator",
+  icons: {
+    icon: "/assets/favicon.png"
+  }
 };
 
 function AdminIcon() {
