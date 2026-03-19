@@ -37,7 +37,7 @@ cp .env.example .env.local
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
-NEXT_PUBLIC_SITE_URL=https://lor-zyntiq.vercel.app
+NEXT_PUBLIC_SITE_URL=https://lor-uplern.vercel.app
 ```
 
 4. Run `supabase/schema.sql` in Supabase SQL editor.
@@ -73,5 +73,5 @@ npm run dev
 1. Push this repo to GitHub.
 2. Import project in Vercel.
 3. Add environment variables from `.env.example`.
-4. Set production domain to `lor-zyntiq.vercel.app`.
+4. Set production domain to `lor-uplern.vercel.app`.
 5. Deploy.

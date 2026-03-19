@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 export const metadata = {
-  title: "Zyntiq LOR",
+  title: "Uplern LOR",
   description: "Self-service letter of recommendation generator"
 };
 
@@ -27,8 +27,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <header className="topnav">
             <Link href="/" className="brand-logo-link" aria-label="Go to home">
               <Image
-                src="/assets/logo.png"
-                alt="Zyntiq"
+                src="/assets/logo.png?v=1.1"
+                alt="Uplern"
                 className="brand-logo"
                 width={130}
                 height={34}

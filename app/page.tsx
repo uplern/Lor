@@ -55,7 +55,7 @@ export default function Home() {
       <section className="hero clean-hero">
         <div className="hero-content-wrapper">
           <div className="hero-text">
-            <div className="hero-badge">Official Zyntiq Portal</div>
+            <div className="hero-badge">Official Uplern Portal</div>
             <h1>Get Your Letter of Recommendation</h1>
             <p>
               Verify your details and download your organization-approved recommendation letter with a
@@ -92,9 +92,9 @@ export default function Home() {
 
       <section className="grid two" style={{ marginTop: "1rem" }}>
         <article className="card">
-          <h2 className="panel-title">About Zyntiq</h2>
+          <h2 className="panel-title">About Uplern</h2>
           <p className="muted" style={{ margin: 0 }}>
-            Zyntiq helps interns build practical skills through real work, mentorship, and clear
+            Uplern helps interns build practical skills through real work, mentorship, and clear
             performance expectations.
           </p>
         </article>

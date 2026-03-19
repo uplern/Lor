@@ -27,12 +27,12 @@ In summary, I would like to express my strong support for them as a sincere and 
 
 Sincerely,
 Atul Kumar
-Founder Zyntiq.`;
+Founder Uplern.`;
 
 const PLACEHOLDER_HINT = "Use placeholders: {{Name}}, {{Role}}, {{Tenure}}, {{Date}}.";
 
 export default function TemplateEditor({ onSubmit, initialData, onCancel }: Props) {
-  const [name, setName] = useState("Zyntiq Standard LOR");
+  const [name, setName] = useState("Uplern Standard LOR");
   const [department, setDepartment] = useState("Human Resources");
   const [tenure, setTenure] = useState("1-2 Months");
   const [templateContent, setTemplateContent] = useState(DEFAULT_TEMPLATE);
@@ -45,7 +45,7 @@ export default function TemplateEditor({ onSubmit, initialData, onCancel }: Prop
       setTenure(initialData.tenure || "");
       setTemplateContent(initialData.template_content);
     } else {
-      setName("Zyntiq Standard LOR");
+      setName("Uplern Standard LOR");
       setDepartment("Human Resources");
       setTenure("1-2 Months");
       setTemplateContent(DEFAULT_TEMPLATE);

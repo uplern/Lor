@@ -33,12 +33,30 @@ create table if not exists public.admins (
   role text not null check (role in ('super_admin', 'admin'))
 );
 
+-- Function to check if a user is an admin (bypasses RLS)
 create or replace function public.is_admin(uid uuid)
 returns boolean
-language sql
+language plpgsql
+security definer
+set search_path = public
 stable
 as $$
-  select exists (select 1 from public.admins a where a.id = uid);
+begin
+  return exists (select 1 from public.admins a where a.id = uid);
+end;
+$$;
+
+-- Function to check if a user is a super_admin (bypasses RLS)
+create or replace function public.is_super_admin(uid uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+stable
+as $$
+begin
+  return exists (select 1 from public.admins a where a.id = uid and a.role = 'super_admin');
+end;
 $$;
 
 alter table public.templates enable row level security;
@@ -76,16 +94,10 @@ drop policy if exists "admins managed by super_admin" on public.admins;
 create policy "admins managed by super_admin"
 on public.admins for all
 using (
-  exists (
-    select 1 from public.admins a
-    where a.id = auth.uid() and a.role = 'super_admin'
-  )
+  public.is_super_admin(auth.uid())
 )
 with check (
-  exists (
-    select 1 from public.admins a
-    where a.id = auth.uid() and a.role = 'super_admin'
-  )
+  public.is_super_admin(auth.uid())
 );
 
 create or replace function public.touch_updated_at()
