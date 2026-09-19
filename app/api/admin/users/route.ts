@@ -7,7 +7,7 @@ export async function GET() {
 
   const { data, error } = await auth.supabase
     .from("lor_users")
-    .select("id,name,email,role,tenure,template_id,token,created_at")
+    .select("*")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -22,6 +22,7 @@ export async function POST(request: Request) {
   if ("error" in auth) return auth.error;
 
   const body = await request.json();
+  const gender = String(body.gender || "male").trim().toLowerCase();
   const payload = {
     name: String(body.name || "").trim(),
     email: String(body.email || "").trim().toLowerCase(),
@@ -36,11 +37,23 @@ export async function POST(request: Request) {
 
   const token = crypto.randomUUID();
 
-  const { data, error } = await auth.supabase
+  // Try inserting with gender column first
+  let { data, error } = await auth.supabase
     .from("lor_users")
-    .insert({ ...payload, token })
+    .insert({ ...payload, gender, token })
     .select("*")
     .single();
+
+  if (error && error.message.includes("gender")) {
+    // Graceful fallback if gender column hasn't been added to DB yet
+    const fallbackRes = await auth.supabase
+      .from("lor_users")
+      .insert({ ...payload, token })
+      .select("*")
+      .single();
+    data = fallbackRes.data;
+    error = fallbackRes.error;
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -7,3 +7,6 @@ out
 .env.test.local
 .env.production.local
 *.log
+tsconfig.tsbuildinfo
+public/assets/test_output.pdf
+bg_lor-1.png

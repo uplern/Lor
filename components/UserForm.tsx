@@ -13,6 +13,7 @@ type Props = {
     role: string;
     tenure: string;
     template_id: string;
+    gender?: string | null;
   } | null;
   onSubmit: (payload: {
     name: string;
@@ -20,59 +21,93 @@ type Props = {
     role: string;
     tenure: string;
     template_id: string;
+    gender: string;
   }) => Promise<void>;
   onCancel?: () => void;
 };
 
-const ROLE_OPTIONS = ["Talent Acquisition", "Talent Acquisition & Marketing"];
-const TENURE_OPTIONS = ["1 Month", "2 Months"];
+const DEFAULT_ROLE = "Recruitment Specialist and Business Partnership Executive";
+
+const ROLE_OPTIONS = [
+  "Recruitment Specialist and Business Partnership Executive",
+  "Talent Acquisition",
+  "Talent Acquisition & Marketing"
+];
+
+const ROLE_TENURE_MAP: Record<string, string[]> = {
+  "Recruitment Specialist and Business Partnership Executive": ["65 Days"],
+  "Talent Acquisition": ["1 Month", "2 Months"],
+  "Talent Acquisition & Marketing": ["1 Month", "2 Months"]
+};
+
+function getTenureOptionsForRole(selectedRole: string): string[] {
+  return ROLE_TENURE_MAP[selectedRole] || ["1 Month", "2 Months"];
+}
 
 export default function UserForm({ templates, onSubmit, initialData, onCancel }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("Talent Acquisition");
-  const [tenure, setTenure] = useState("2 Months");
+  const [role, setRole] = useState(DEFAULT_ROLE);
+  const [tenure, setTenure] = useState("65 Days");
+  const [gender, setGender] = useState("male");
   const [templateId, setTemplateId] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (initialData) {
+      const initRole = initialData.role || DEFAULT_ROLE;
+      const validTenures = getTenureOptionsForRole(initRole);
+      const initTenure = initialData.tenure && validTenures.includes(initialData.tenure) ? initialData.tenure : validTenures[0];
+
       setName(initialData.name);
       setEmail(initialData.email);
-      setRole(initialData.role);
-      setTenure(initialData.tenure);
+      setRole(initRole);
+      setTenure(initTenure);
+      setGender(initialData.gender || "male");
       setTemplateId(initialData.template_id);
     } else {
       setName("");
       setEmail("");
-      setRole("Talent Acquisition");
-      setTenure("2 Months");
+      setRole(DEFAULT_ROLE);
+      setTenure("65 Days");
+      setGender("male");
       if (templates.length > 0) {
         setTemplateId(templates[0].id);
       }
     }
   }, [initialData, templates]);
 
+  function handleRoleChange(newRole: string) {
+    setRole(newRole);
+    const validTenures = getTenureOptionsForRole(newRole);
+    if (!validTenures.includes(tenure)) {
+      setTenure(validTenures[0]);
+    }
+  }
+
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    await onSubmit({ name, email, role, tenure, template_id: templateId });
+    await onSubmit({ name, email, role, tenure, template_id: templateId, gender });
     setLoading(false);
     if (!initialData) {
       setName("");
       setEmail("");
-      setRole("Talent Acquisition");
-      setTenure("2 Months");
+      setRole(DEFAULT_ROLE);
+      setTenure("65 Days");
+      setGender("male");
     }
   }
+
+  const availableTenureOptions = getTenureOptionsForRole(role);
 
   return (
     <form className="card form-grid" onSubmit={submit}>
       <h3 className="panel-title">{initialData ? "Edit User Record" : "Add User Record"}</h3>
 
       <div>
-        <label htmlFor="user-name">Name</label>
-        <input id="user-name" value={name} onChange={(e) => setName(e.target.value)} required />
+        <label htmlFor="user-name">Candidate Name</label>
+        <input id="user-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Adarsh Singh" required />
       </div>
 
       <div>
@@ -82,13 +117,22 @@ export default function UserForm({ templates, onSubmit, initialData, onCancel }:
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           type="email"
+          placeholder="candidate@email.com"
           required
         />
       </div>
 
       <div>
-        <label htmlFor="user-role">Role</label>
-        <select id="user-role" value={role} onChange={(e) => setRole(e.target.value)} required>
+        <label htmlFor="user-gender">Gender</label>
+        <select id="user-gender" value={gender} onChange={(e) => setGender(e.target.value)} required>
+          <option value="male">Male (he/him/his)</option>
+          <option value="female">Female (she/her/her)</option>
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="user-role">Role / Position</label>
+        <select id="user-role" value={role} onChange={(e) => handleRoleChange(e.target.value)} required>
           {ROLE_OPTIONS.map((option) => (
             <option key={option} value={option}>
               {option}
@@ -98,9 +142,9 @@ export default function UserForm({ templates, onSubmit, initialData, onCancel }:
       </div>
 
       <div>
-        <label htmlFor="user-tenure">Tenure</label>
+        <label htmlFor="user-tenure">Tenure / Duration</label>
         <select id="user-tenure" value={tenure} onChange={(e) => setTenure(e.target.value)} required>
-          {TENURE_OPTIONS.map((option) => (
+          {availableTenureOptions.map((option) => (
             <option key={option} value={option}>
               {option}
             </option>

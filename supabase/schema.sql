@@ -18,12 +18,16 @@ create table if not exists public.lor_users (
   email text not null,
   role text not null,
   tenure text not null,
+  gender text not null default 'male',
   template_id uuid not null references public.templates(id) on delete restrict,
   token text unique,
   last_downloaded_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Migration script to add gender column if table already exists
+alter table public.lor_users add column if not exists gender text default 'male';
 
 create unique index if not exists lor_users_email_name_uq
 on public.lor_users (lower(email), lower(name));

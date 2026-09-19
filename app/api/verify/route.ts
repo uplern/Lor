@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabaseAdmin";
 import { renderTemplate } from "@/lib/renderTemplate";
+import { getTemplateContent } from "@/lib/genderTemplates";
 
 function formatToday(): string {
   return new Date().toLocaleDateString("en-GB", {
@@ -46,8 +47,9 @@ export async function POST(request: Request) {
   }
 
   const today = formatToday();
+  const templateText = getTemplateContent(user.gender || "male", template.template_content);
 
-  const content = renderTemplate(template.template_content, {
+  const content = renderTemplate(templateText, {
     name: user.name,
     Name: user.name,
     role: user.role,

@@ -2,106 +2,87 @@ import React from "react";
 import fs from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
-import { Document, Image, Page, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
+import { Document, Font, Image, Page, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
+import { getTemplateContent } from "@/lib/genderTemplates";
+import { PDFDocument } from "pdf-lib";
 import { createServiceRoleClient } from "@/lib/supabaseAdmin";
 import { renderTemplate } from "@/lib/renderTemplate";
 import QRCode from "qrcode";
 
 export const runtime = "nodejs";
 
+// Disable automatic word hyphenation (e.g. individ-ual)
+Font.registerHyphenationCallback((word) => [word]);
+
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 46,
-    paddingBottom: 78,
-    paddingHorizontal: 46,
+    paddingTop: 195,
+    paddingBottom: 95,
+    paddingHorizontal: 48,
     color: "#111827",
     fontFamily: "Helvetica"
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "flex-start",
-    marginBottom: 42
-  },
-  logo: {
-    width: 130,
-    height: 38,
-    objectFit: "contain"
-  },
-  companyBlock: {
-    textAlign: "right",
-    fontSize: 11
+    marginBottom: 10
   },
   dateLine: {
-    marginTop: 6,
-    fontSize: 11
-  },
-  title: {
-    textAlign: "center",
-    fontSize: 23,
-    marginBottom: 14
+    fontSize: 11,
+    color: "#374151"
   },
   subtitle: {
     textAlign: "center",
-    fontSize: 12,
-    marginBottom: 26
+    fontSize: 13.5,
+    marginBottom: 18,
+    fontWeight: "bold"
   },
   body: {
     textAlign: "justify",
-    fontSize: 13,
+    fontSize: 12,
     lineHeight: 1.72
   },
   bodyParagraph: {
-    marginBottom: 11
+    marginBottom: 14
   },
   closingSection: {
-    marginTop: 10,
-    width: 300,
-    position: "relative",
-    paddingBottom: 78
+    marginTop: 14,
+    position: "relative"
   },
   closingLine: {
     fontSize: 12,
-    lineHeight: 1.14,
-    marginBottom: 1
+    lineHeight: 1.3,
+    marginBottom: 2
   },
   referenceId: {
-    marginTop: 44,
+    marginTop: 16,
+    marginBottom: 4,
     fontSize: 9,
     color: "#4b5563"
   },
+  candidateId: {
+    position: "absolute",
+    bottom: 92,
+    right: 48,
+    fontSize: 9,
+    color: "#4b5563",
+    textAlign: "right"
+  },
   stampOverlay: {
     position: "absolute",
-    width: 96,
-    height: 96,
-    left: 50,
-    top: -15,
+    width: 85,
+    height: 85,
+    left: 95,
+    top: -12,
     objectFit: "contain"
   },
   qrCodeImage: {
-    position: "absolute",
-    width: 64,
-    height: 64,
-    left: 0,
-    bottom: -10,
+    position: "relative",
+    width: 55,
+    height: 55,
+    marginTop: 6,
     objectFit: "contain"
-  },
-  footerWrap: {
-    position: "absolute",
-    left: 46,
-    right: 46,
-    bottom: 22
-  },
-  footerLine: {
-    borderTopWidth: 1,
-    borderTopColor: "#d1d5db",
-    marginBottom: 5
-  },
-  footerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    fontSize: 9,
-    color: "#374151"
   }
 });
 
@@ -147,14 +128,16 @@ function buildReferenceId(content: string): string {
   return `UPLERN-LOR-${dateTag}-${hash.toString(16).slice(0, 6).toUpperCase()}`;
 }
 
-function createLORDocument(content: string, logoSrc: string | null, signSealSrc: string | null, qrCodeSrc: string | null) {
+function createLORDocument(content: string, signSealSrc: string | null, qrCodeSrc: string | null) {
   const { body, closing } = splitBodyAndClosing(content);
+  const referenceId = buildReferenceId(content);
   const paragraphs = body
     .split(/\n\s*\n/)
     .map((line) => line.trim())
     .filter(Boolean);
 
-  const referenceId = buildReferenceId(content);
+  const defaultClosing = ["Sincerely,", "Aarav Jain", "Authorized Signatory"];
+  const closingLines = closing.length > 0 ? closing : defaultClosing;
 
   return React.createElement(
     Document,
@@ -165,15 +148,8 @@ function createLORDocument(content: string, logoSrc: string | null, signSealSrc:
       React.createElement(
         View,
         { style: styles.header },
-        logoSrc ? React.createElement(Image, { src: logoSrc, style: styles.logo }) : React.createElement(View, null),
-        React.createElement(
-          View,
-          { style: styles.companyBlock },
-          React.createElement(Text, null, "Uplern Pvt Ltd"),
-          React.createElement(Text, { style: styles.dateLine }, `Date: ${formatToday()}`)
-        )
+        React.createElement(Text, { style: styles.dateLine }, `Date: ${formatToday()}`)
       ),
-      React.createElement(Text, { style: styles.title }, "Letter of Recommendation"),
       React.createElement(Text, { style: styles.subtitle }, "To whomsoever it may concern"),
       React.createElement(
         View,
@@ -183,32 +159,19 @@ function createLORDocument(content: string, logoSrc: string | null, signSealSrc:
         )
       ),
       React.createElement(
-        Text,
-        { style: [styles.body, { marginTop: 2 }] },
-        "We wish them success in their future academic and professional endeavors."
+        View,
+        { style: styles.closingSection },
+        ...closingLines.map((line, index) =>
+          React.createElement(Text, { key: `c-${index}`, style: styles.closingLine }, line)
+        ),
+        signSealSrc ? React.createElement(Image, { src: signSealSrc, style: styles.stampOverlay }) : null,
+        qrCodeSrc ? React.createElement(Image, { src: qrCodeSrc, style: styles.qrCodeImage }) : null
       ),
-      closing.length > 0
-        ? React.createElement(
-          View,
-          { style: styles.closingSection },
-          ...closing.map((line, index) =>
-            React.createElement(Text, { key: `c-${index}`, style: styles.closingLine }, line)
-          ),
-          React.createElement(Text, { style: styles.referenceId }, `Reference ID: ${referenceId}`),
-          signSealSrc ? React.createElement(Image, { src: signSealSrc, style: styles.stampOverlay }) : null,
-          qrCodeSrc ? React.createElement(Image, { src: qrCodeSrc, style: styles.qrCodeImage }) : null
-        )
-        : null,
+      // Candidate ID — absolutely positioned at bottom-right above footer
       React.createElement(
         View,
-        { style: styles.footerWrap },
-        React.createElement(View, { style: styles.footerLine }),
-        React.createElement(
-          View,
-          { style: styles.footerRow },
-          React.createElement(Text, null, "info@uplern.uk"),
-          React.createElement(Text, null, "Generated by Uplern LOR Portal")
-        )
+        { style: styles.candidateId },
+        React.createElement(Text, null, `Candidate ID: ${referenceId}`)
       )
     )
   );
@@ -226,7 +189,7 @@ export async function POST(request: Request) {
 
     const { data: user, error: userErr } = await supabase
       .from("lor_users")
-      .select("name,role,tenure,template_id,last_downloaded_at")
+      .select("*")
       .eq("token", cleanToken)
       .maybeSingle();
 
@@ -258,7 +221,9 @@ export async function POST(request: Request) {
     }
 
     const today = formatToday();
-    const safeContent = renderTemplate(template.template_content, {
+    const templateText = getTemplateContent(user.gender || "male", template.template_content);
+
+    const safeContent = renderTemplate(templateText, {
       name: user.name,
       Name: user.name,
       role: user.role,
@@ -270,17 +235,34 @@ export async function POST(request: Request) {
     });
 
     const assetsDir = path.join(process.cwd(), "public", "assets");
-    const logoSrc = toDataUri(path.join(assetsDir, "logo.png"));
     const signSealSrc = toDataUri(path.join(assetsDir, "seal&sign.png"));
 
     const { origin } = new URL(request.url);
     const verificationUrl = `${origin}/verify?token=${cleanToken}`;
     const qrCodeSrc = await QRCode.toDataURL(verificationUrl, { margin: 1, width: 128 });
 
-    const blob = await pdf(createLORDocument(safeContent, logoSrc, signSealSrc, qrCodeSrc)).toBlob();
-    const buffer = Buffer.from(await blob.arrayBuffer());
+    const fgBlob = await pdf(createLORDocument(safeContent, signSealSrc, qrCodeSrc)).toBlob();
+    const fgBuffer = Buffer.from(await fgBlob.arrayBuffer());
 
-    return new NextResponse(buffer, {
+    const bgPdfPath = path.join(assetsDir, "bg_lor.pdf");
+    let buffer: Buffer;
+
+    if (fs.existsSync(bgPdfPath)) {
+      const bgBuffer = fs.readFileSync(bgPdfPath);
+      const bgDoc = await PDFDocument.load(bgBuffer);
+      const fgDoc = await PDFDocument.load(fgBuffer);
+
+      const [embeddedFgPage] = await bgDoc.embedPdf(fgDoc, [0]);
+      const bgPage = bgDoc.getPage(0);
+      bgPage.drawPage(embeddedFgPage, { x: 0, y: 0 });
+
+      const finalPdfBytes = await bgDoc.save();
+      buffer = Buffer.from(finalPdfBytes);
+    } else {
+      buffer = fgBuffer;
+    }
+
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${fileName || "LOR.pdf"}"`

@@ -43,6 +43,7 @@ export default function UsersPage() {
     role: string;
     tenure: string;
     template_id: string;
+    gender: string;
   }) {
     setError(null);
     setSuccess(null);
@@ -105,8 +106,8 @@ export default function UsersPage() {
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Email</th>
-                <th>Template</th>
+                <th>Gender</th>
+                <th>Role</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -114,8 +115,8 @@ export default function UsersPage() {
               {users.map((user) => (
                 <tr key={user.id}>
                   <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{templateMap.get(user.template_id) || user.template_id}</td>
+                  <td style={{ textTransform: "capitalize" }}>{user.gender || "male"}</td>
+                  <td>{user.role}</td>
                   <td>
                     <div className="admin-links">
                       <button className="btn secondary small" onClick={() => setEditingUser(user)}>

@@ -15,6 +15,7 @@ export type LORUserRow = {
   email: string;
   role: string;
   tenure: string;
+  gender?: string | null;
   template_id: string;
   token: string | null;
   created_at: string;
